@@ -117,7 +117,7 @@ def merge_config(config):
         else:
             sub_keys = key.split('.')
             assert (
-                sub_keys[0] in global_config
+                    sub_keys[0] in global_config
             ), "the sub_keys can only be one of global_config: {}, but get: {}, please check your running command".format(
                 global_config.keys(), sub_keys[0])
             cur = global_config[sub_keys[0]]
@@ -183,7 +183,7 @@ def train(config,
             start_eval_step = 1e111
         logger.info(
             "During the training process, after the {}th iteration, an evaluation is run every {} iterations".
-            format(start_eval_step, eval_batch_step))
+                format(start_eval_step, eval_batch_step))
     save_epoch_step = config['Global']['save_epoch_step']
     save_model_dir = config['Global']['save_model_dir']
     if not os.path.exists(save_model_dir):
@@ -197,7 +197,7 @@ def train(config,
 
     use_srn = config['Architecture']['algorithm'] == "SRN"
     extra_input = config['Architecture'][
-        'algorithm'] in ["SRN", "NRTR", "SAR", "SEED"]
+                      'algorithm'] in ["SRN", "NRTR", "SAR", "SEED"]
     try:
         model_type = config['Architecture']['model_type']
     except:
@@ -266,7 +266,7 @@ def train(config,
             stats['lr'] = lr
             train_stats.update(stats)
 
-            if cal_metric_during_train  and model_type is not "det":  # only rec and cls need
+            if cal_metric_during_train and model_type is not "det":  # only rec and cls need
                 batch = [item.numpy() for item in batch]
                 if model_type in ['table', 'kie']:
                     eval_class(preds, batch)
@@ -282,14 +282,14 @@ def train(config,
                 vdl_writer.add_scalar('TRAIN/lr', lr, global_step)
 
             if dist.get_rank() == 0 and (
-                (global_step > 0 and global_step % print_batch_step == 0) or
-                (idx >= len(train_dataloader) - 1)):
+                    (global_step > 0 and global_step % print_batch_step == 0) or
+                    (idx >= len(train_dataloader) - 1)):
                 logs = train_stats.log()
                 strs = 'epoch: [{}/{}], iter: {}, {}, reader_cost: {:.5f} s, batch_cost: {:.5f} s, samples: {}, ips: {:.5f}'.format(
                     epoch, epoch_num, global_step, logs, train_reader_cost /
-                    print_batch_step, (train_reader_cost + train_run_cost) /
-                    print_batch_step, total_samples,
-                    total_samples / (train_reader_cost + train_run_cost))
+                                                         print_batch_step, (train_reader_cost + train_run_cost) /
+                                                         print_batch_step, total_samples,
+                                                         total_samples / (train_reader_cost + train_run_cost))
                 logger.info(strs)
                 train_reader_cost = 0.0
                 train_run_cost = 0.0
@@ -322,7 +322,7 @@ def train(config,
                             vdl_writer.add_scalar('EVAL/{}'.format(k),
                                                   cur_metric[k], global_step)
                 if cur_metric[main_indicator] >= best_model_dict[
-                        main_indicator]:
+                    main_indicator]:
                     best_model_dict.update(cur_metric)
                     best_model_dict['best_epoch'] = epoch
                     save_model(
@@ -426,6 +426,59 @@ def eval(model,
     return metric
 
 
+def batch_predict(model,
+                  valid_dataloader,
+                  post_process_class,
+                  eval_class,
+                  model_type=None,
+                  extra_input=False,
+                  file=None):
+    model.eval()
+    with paddle.no_grad():
+        total_frame = 0.0
+        total_time = 0.0
+        pbar = tqdm(
+            total=len(valid_dataloader),
+            desc='eval model:',
+            position=0,
+            leave=True)
+        max_iter = len(valid_dataloader) - 1 if platform.system(
+        ) == "Windows" else len(valid_dataloader)
+        for idx, batch in enumerate(valid_dataloader):
+            if idx >= max_iter:
+                break
+            images = batch[0]
+            start = time.time()
+            if model_type == 'table' or extra_input:
+                preds = model(images, data=batch[1:])
+            elif model_type == "kie":
+                preds = model(batch)
+            else:
+                preds = model(images)
+            batch = [item.numpy() for item in batch]
+            # Obtain usable results from post-processing methods
+            total_time += time.time() - start
+            # Evaluate the results of the current batch
+            if model_type in ['table', 'kie']:
+                eval_class(preds, batch)
+            else:
+                post_result = post_process_class(preds, batch[1])
+                eval_class(post_result, batch)
+
+            pbar.update(1)
+            total_frame += len(images)
+            for image_file, label, r in zip(batch[3], batch[1], post_result):
+                tmp = '{}\t{}\t{}\t{}\n'.format(image_file, label, r[0], str(r[1]))
+                file.write(tmp)
+        # Get final metric，eg. acc or hmean
+        metric = eval_class.get_metric()
+
+    pbar.close()
+    model.train()
+    metric['fps'] = total_frame / total_time
+    return metric
+
+
 def update_center(char_center, post_result, preds):
     result, label = post_result
     feats, logits = preds
@@ -441,8 +494,8 @@ def update_center(char_center, post_result, preds):
                 index = logit[idx_time]
                 if index in char_center.keys():
                     char_center[index][0] = (
-                        char_center[index][0] * char_center[index][1] +
-                        feat[idx_time]) / (char_center[index][1] + 1)
+                                                    char_center[index][0] * char_center[index][1] +
+                                                    feat[idx_time]) / (char_center[index][1] + 1)
                     char_center[index][1] += 1
                 else:
                     char_center[index] = [feat[idx_time], 1]
@@ -465,7 +518,7 @@ def get_center(model, eval_dataloader, post_process_class):
         # Obtain usable results from post-processing methods
         post_result = post_process_class(preds, batch[1])
 
-        #update char_center
+        # update char_center
         char_center = update_center(char_center, post_result, preds)
         pbar.update(1)
 
