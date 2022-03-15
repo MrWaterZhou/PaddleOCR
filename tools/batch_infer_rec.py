@@ -34,6 +34,7 @@ import tools.program as program
 
 def main():
     global_config = config['Global']
+    config['Eval']['dataset']['transforms']['KeepKeys']['keep_keys'] = ['image', 'label', 'length', 'img_path']
     # build dataloader
     valid_dataloader = build_dataloader(config, 'Eval', device, logger)
 
