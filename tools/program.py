@@ -468,6 +468,7 @@ def batch_predict(model,
             pbar.update(1)
             total_frame += len(images)
             for image_file, label, r in zip(batch[3], batch[1], post_result):
+                print(r)
                 tmp = '{}\t{}\t{}\t{}\n'.format(image_file, label, r[0], str(r[1]))
                 file.write(tmp)
         # Get final metric，eg. acc or hmean
