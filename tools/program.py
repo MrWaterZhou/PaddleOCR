@@ -455,7 +455,7 @@ def batch_predict(model,
                 preds = model(batch)
             else:
                 preds = model(images)
-            batch = [item.numpy() for item in batch]
+            batch = [item.numpy() if not isinstance(item, list) else item for item in batch]
             # Obtain usable results from post-processing methods
             total_time += time.time() - start
             # Evaluate the results of the current batch
