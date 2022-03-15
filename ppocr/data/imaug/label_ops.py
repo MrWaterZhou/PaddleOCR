@@ -199,6 +199,7 @@ class CTCLabelEncode(BaseRecLabelEncode):
 
     def __call__(self, data):
         text = data['label']
+        data['label_text'] = text
         text = self.encode(text)
         if text is None:
             return None
