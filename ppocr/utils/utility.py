@@ -54,6 +54,10 @@ def get_image_file_list(img_file):
     img_end = {'jpg', 'bmp', 'png', 'jpeg', 'rgb', 'tif', 'tiff', 'gif', 'GIF'}
     if os.path.isfile(img_file) and imghdr.what(img_file) in img_end:
         imgs_lists.append(img_file)
+    elif img_file.endswith('txt'):
+        with open(img_file) as f:
+            for x in f:
+                imgs_lists.append(x.strip().split('\t')[0])
     elif os.path.isdir(img_file):
         for single_file in os.listdir(img_file):
             file_path = os.path.join(img_file, single_file)
