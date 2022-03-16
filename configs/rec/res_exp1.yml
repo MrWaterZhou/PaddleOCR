@@ -62,7 +62,7 @@ Train:
   dataset:
     name: SimpleDataSet
     data_dir: ./train_data/
-    label_file_list: [".data/train.txt","./data/sync_train.txt"]
+    label_file_list: ["./data/train.txt","./data/sync_train.txt"]
     ratio_list: [0.2, 0.8]
     transforms:
       - DecodeImage: # load image
