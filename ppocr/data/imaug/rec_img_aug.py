@@ -200,7 +200,7 @@ def resize_norm_img(img, image_shape, padding=True):
     resized_image -= 0.5
     resized_image /= 0.5
     padding_im = (np.ones((imgC, imgH, imgW), dtype=np.float32) * np.random.uniform(-1, 1)).astype(np.float32)
-    delta = np.random.randint(0, imgW - resized_w - 1)
+    delta = np.random.randint(0, imgW - resized_w - 1) if imgW - resized_w - 1 > 0 else 0
     padding_im[:, :, 0 + delta:resized_w + delta] = resized_image
     return padding_im
 
