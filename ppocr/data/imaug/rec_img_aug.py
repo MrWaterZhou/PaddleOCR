@@ -199,8 +199,9 @@ def resize_norm_img(img, image_shape, padding=True):
         resized_image = resized_image.transpose((2, 0, 1)) / 255
     resized_image -= 0.5
     resized_image /= 0.5
-    padding_im = np.zeros((imgC, imgH, imgW), dtype=np.float32)
-    padding_im[:, :, 0:resized_w] = resized_image
+    padding_im = np.ones((imgC, imgH, imgW), dtype=np.float32) * np.random.uniform(-1, 1).astype(np.float32)
+    delta = np.random.randint(0, imgW - resized_w - 1)
+    padding_im[:, :, 0 + delta:resized_w + delta] = resized_image
     return padding_im
 
 
@@ -258,7 +259,6 @@ def resize_norm_img_srn(img, image_shape):
 
 
 def srn_other_inputs(image_shape, num_heads, max_text_length):
-
     imgC, imgH, imgW = image_shape
     feature_dim = int((imgH / 8) * (imgW / 8))
 
@@ -334,7 +334,7 @@ def add_gasuss_noise(image, mean=0, var=0.1):
     Gasuss noise
     """
 
-    noise = np.random.normal(mean, var**0.5, image.shape)
+    noise = np.random.normal(mean, var ** 0.5, image.shape)
     out = image + 0.5 * noise
     out = np.clip(out, 0, 255)
     out = np.uint8(out)
@@ -419,7 +419,7 @@ def get_warpR(config):
     if w > 69 and w < 112:
         anglex = anglex * 1.5
 
-    z = np.sqrt(w**2 + h**2) / 2 / np.tan(rad(fov / 2))
+    z = np.sqrt(w ** 2 + h ** 2) / 2 / np.tan(rad(fov / 2))
     # Homogeneous coordinate transformation matrix
     rx = np.array([[1, 0, 0, 0],
                    [0, np.cos(rad(anglex)), -np.sin(rad(anglex)), 0], [
