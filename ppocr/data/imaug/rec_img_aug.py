@@ -199,7 +199,7 @@ def resize_norm_img(img, image_shape, padding=True):
         resized_image = resized_image.transpose((2, 0, 1)) / 255
     resized_image -= 0.5
     resized_image /= 0.5
-    padding_im = np.ones((imgC, imgH, imgW), dtype=np.float32) * np.random.uniform(-1, 1).astype(np.float32)
+    padding_im = (np.ones((imgC, imgH, imgW), dtype=np.float32) * np.random.uniform(-1, 1)).astype(np.float32)
     delta = np.random.randint(0, imgW - resized_w - 1)
     padding_im[:, :, 0 + delta:resized_w + delta] = resized_image
     return padding_im
